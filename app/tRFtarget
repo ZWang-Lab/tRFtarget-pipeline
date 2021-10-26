@@ -1,0 +1,222 @@
+#!/bin/bash
+
+# ran it within the conda environment with IntaRNA 3.1.3 installed
+
+## set environment
+
+# more safety, by turning some bugs into errors
+# `set -o errexit`: Same as `-e`; Exit immediately if a pipeline returns a non-zero status (a command which exits with a zero exit status has succeeded. A non-zero exit status indicates failure)
+# `set -o pipefail`: If set, the return value of a pipeline is the value of the last (rightmost) command to exit with a non-zero status, or zero if all commands in the pipeline exit successfully
+# `set -o noclobber`: Same as `-C`; Prevent output redirection using ‘>’, ‘>&’, and ‘<>’ from overwriting existing files
+# `set -o nounset`: Same as `-u`; Treat unset variables and parameters other than the special parameters ‘@’ or ‘*’ as an error when performing parameter expansion. An error message will be written to the standard error, and a non-interactive shell will exit.
+set -o errexit -o pipefail -o noclobber -o nounset
+
+# by default, print in Python is buffered, meaning that it does not write to files or stdout immediately
+# use `python -u` Force stdin, stdout and stderr to be totally unbuffered
+# but it is better to use environment variable
+export PYTHONUNBUFFERED=1
+
+# define the folder where all scripts are located
+code_folder="/app"
+
+# mounted folder for exchanging files
+data_folder="/data"
+
+
+## use enhanced getopt to parse the command options (ref: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash/29754866#29754866)
+
+# check whether enhanced getopt available
+# allow a command to fail with !’s side effect on errexit
+! getopt --test > /dev/null 
+if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
+    echo '`getopt --test` failed in this environment!'
+    exit 1
+fi
+
+# function to print help message
+show_help_message () {
+    echo "tRFtarget [option][value]...
+    -h or --help        print this help messages
+    -v or --version     print version
+    -q or --query       FASTA file of query tRFs. Required
+    -t or --target      FASTA file of target RNAs. If not provided, use 100,218
+                        Protein-coding transcript sequences (GRCh38.p13) as 
+                        target RNAs
+    -n or --n_cores     number of CPU cores used for parallel computation.
+                        Default value is 1
+    --e_rnahybrid       free energy threshold for RNAhybrid,
+                        used for RNAhybrid -e option.
+                        Default value is -15
+    --e_intarna         free energy threshold for IntaRNA,
+                        used for IntaRNA --outMaxE option.
+                        Default value is 0
+    -b or --suboptimal  reported number of interaction sites on each transcript,
+                        used for RNAhybrid -b option and IntaRNA -n option.
+                        Default value is 1
+    -s or --seed_len    For RNAhybrid, threshold of maximum complementary length
+                        interactions with maximum complementary length less than
+                        it are filtered out.
+                        For IntaRNA, threshold of the number of base pairs
+                        within the seed sequences,
+                        used for IntaRNA -seedBP option.
+                        Default value is 6"
+}
+
+# if no options are provided, print the help message and exit
+if [[ $# -eq 0 ]]; then
+    show_help_message
+    exit 0
+fi
+
+# ':' after option means that option must be followed by a parameter
+OPTIONS=t:q:n:b:s:hv
+LONGOPTS=target:,query:,n_cores:,e_rnahybrid:,e_intarna:,suboptimal:,seed_len:,help,version
+
+# temporarily store output to be able to check for errors
+# activate quoting/enhanced mode (e.g. by writing out “--options”)
+# pass arguments only via   -- "$@"   to separate them correctly
+! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    # return non-zero value then getopt has complained about wrong arguments to stdout
+    exit 2
+fi
+
+
+# read getopt’s output this way to handle the quoting right
+eval set -- "$PARSED"
+
+# default option values
+n_cores=1 e_rnahybrid=-15 e_intarna=0 suboptimal=5 seed_len=6 target_rna_file=""
+
+
+# now extract the options in order and nicely split until we see --
+while true; do
+    case "$1" in
+        -t|--target)
+            target_rna_file="$data_folder/$2"
+            shift 2
+            ;;
+        -q|--query)
+            query_rna_file="$data_folder/$2"
+            shift 2
+            ;;
+        -n|--n_cores)
+            n_cores="$2"
+            shift 2
+            ;;
+        --e_rnahybrid)
+            e_rnahybrid="$2"
+            shift 2
+            ;;
+        --e_intarna)
+            e_intarna="$2"
+            shift 2
+            ;;
+        -b|--suboptimal)
+            suboptimal="$2"
+            shift 2
+            ;;
+        -s|--seed_len)
+            seed_len="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help_message
+            shift
+            exit 0
+            ;;
+        -v|--version)
+            echo "tRFtarget 0.1.0"
+            shift
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Programming error"
+            exit 3
+            ;;
+    esac
+done
+
+# handle non-option arguments
+if [[ $# -ne 0 ]]; then
+    echo "$0: unrecognized options $@ exist. Please use --help for instructions"
+    exit 4
+fi
+
+# check if the specified CPU cores exceed the total CPU cores
+total_ncores=$(grep -c 'cpu cores' proc/cpuinfo)
+
+if [[ $n_cores -gt $total_ncores ]]; then
+    echo "WARNING: specified CPU cores exceed the total detected CPU cores! re-set it to the total CPU cores: $total_ncores"
+    n_cores=$total_ncores
+fi
+
+# if target_rna_file not specified, using default target RNA fasta file
+if [[ -z $target_rna_file ]]; then
+    echo "WARNING: No target RNA file specified. Use the default 100,218 Protein-coding transcript sequences (GRCh38.p13) as target RNAs"
+    unzip $code_folder/human_pc_transcripts.zip -d $code_folder
+    target_rna_file=$code_folder/human_pc_transcripts.fasta
+fi
+
+# print option values
+echo "options:"
+echo "query tRF file: $query_rna_file"
+echo "target RNA file: $target_rna_file"
+echo "number of CPU cores to be used: $n_cores"
+echo "free energy threshold for RNAhybrid: $e_rnahybrid"
+echo "free energy threshold for IntaRNA: $e_intarna"
+echo "reported number of interaction sites on each transcript: $suboptimal"
+echo "maximum complementary length threshold in RNAhybrid and seed length threshold in IntaRNA: $seed_len"
+echo 
+
+start=$(date "+%s")
+
+## analysis via RNAhybrid 
+echo "Start target prediction by RNAhybrid"
+echo "RNAhybrid version: 2.1.2"
+python $code_folder/callRNAhybrid.py -q $query_rna_file -t $target_rna_file -n $n_cores -o $data_folder -e $e_rnahybrid -m $seed_len -b $suboptimal
+
+
+## analysis via IntaRNA
+intarna_start=$(date "+%s")
+echo
+echo "Start target prediction by IntaRNA"
+IntaRNA --version
+IntaRNA -q $query_rna_file -t $target_rna_file  --threads=$n_cores --mode=M --seedBP=$seed_len -n $suboptimal --outMode=C --out=$data_folder/intarna_results.csv --outMaxE=$e_intarna
+intarna_stop=$(date "+%s")
+
+# avoid using bc to calculate elapsed time
+# time=$(echo "scale=2;($intarna_stop - $intarna_start) / 3600.0" | bc)
+# echo "Running IntaRNA finished. Elapsed time: $time hours."
+
+time=$(( intarna_stop - intarna_start ))
+eval "echo Running IntaRNA finished. Elapsed time: $(date -ud "@$time" +'$((%s/3600/24)) days %H hr %M min %S sec')"
+
+
+# parse IntaRNA results
+echo
+echo "Start parsing IntaRNA results"
+python $code_folder/parseIntaRNA.py -d $data_folder
+
+# replace IntaRNA results
+rm $data_folder/intarna_results.csv
+mv $data_folder/parsed_intarna_results.csv $data_folder/intarna_results.csv
+
+# checking Consensus interactions
+echo
+echo "Start checking consensus predictions between RNAhybrid and IntaRNA results"
+python $code_folder/checkConsensus.py -r $data_folder/rnahybrid_results.csv -i $data_folder/intarna_results.csv -o $data_folder
+
+echo
+stop=$(date "+%s")
+
+# avoid using bc to calculate elapsed time
+# time=$(echo "scale=2;($stop - $start) / 3600.0" | bc)
+# echo "Whole pipeline completed. Elapsed time: $time hours."
+
+time=$(( stop - start ))
+eval "echo Whole pipeline completed. Elapsed time: $(date -ud "@$time" +'$((%s/3600/24)) days %H hr %M min %S sec')"
