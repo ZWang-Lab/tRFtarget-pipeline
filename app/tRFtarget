@@ -148,7 +148,8 @@ if [[ $# -ne 0 ]]; then
 fi
 
 # check if the specified CPU cores exceed the total CPU cores
-total_ncores=$(grep -c 'cpu cores' proc/cpuinfo)
+# ideally the `nproc` result works on both RNAhybrid and IntaRNA, but not installed
+total_ncores=$(grep -c 'cpu cores' /proc/cpuinfo)
 
 if [[ $n_cores -gt $total_ncores ]]; then
     echo "WARNING: specified CPU cores exceed the total detected CPU cores! re-set it to the total CPU cores: $total_ncores"
@@ -158,8 +159,9 @@ fi
 # if target_rna_file not specified, using default target RNA fasta file
 if [[ -z $target_rna_file ]]; then
     echo "WARNING: No target RNA file specified. Use the default 100,218 Protein-coding transcript sequences (GRCh38.p13) as target RNAs"
-    unzip $code_folder/human_pc_transcripts.zip -d $code_folder
-    target_rna_file=$code_folder/human_pc_transcripts.fasta
+    # unzip it to mounted folder for safe
+    unzip $code_folder/human_pc_transcripts.zip -d $data_folder
+    target_rna_file=$data_folder/human_pc_transcripts.fasta
 fi
 
 # print option values
@@ -217,6 +219,11 @@ stop=$(date "+%s")
 # avoid using bc to calculate elapsed time
 # time=$(echo "scale=2;($stop - $start) / 3600.0" | bc)
 # echo "Whole pipeline completed. Elapsed time: $time hours."
+
+# clear all temporary files
+if [[ $target_rna_file == "$data_folder/human_pc_transcripts.fasta" ]]; then
+    rm $target_rna_file
+fi
 
 time=$(( stop - start ))
 eval "echo Whole pipeline completed. Elapsed time: $(date -ud "@$time" +'$((%s/3600/24)) days %H hr %M min %S sec')"
