@@ -61,17 +61,35 @@ The output of tRFtarget pipeline are 6 *CSV* files located in the `<path>` folde
 5. `consensus_results.csv` : a consensus predictions between *RNAHybrid* and *IntaRNA*. The definition of consensus please refer the [Definition of consensus entries in *RNAhybrid* and *IntaRNA* predictions](http://trftarget.net/manual) section in tRFtarget database
 6. `tRF_level_consensus_stats.csv` : a summary of numbers of interactions predicted by *RNAHybrid* and *IntaRNA*, as well as the number of consensus predictions
 
-### Options
+### All Options
 
 | Option                 | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |
 | `-q` or`--query`       | FASTA file of query small RNAs. Required.                    |
 | `-t` or `--target`     | FASTA file of target RNAs. If not provided, use 100,218 Protein-coding transcript sequences (GRCh38.p13) as target RNAs. |
-| `-n` or `--n_cores`    | number of CPU cores used for parallel computation. Default value is 1 (no parallel computation). |
+| `-n` or `--n_cores`    | number of CPU cores used for parallel computing. Default value is 1 (no parallel computing). |
 | `--e_rnahybrid`        | free energy threshold for *RNAhybrid*, used for *RNAhybrid* `-e` option. Default value is -15. |
 | `--e_intarna`          | free energy threshold for *IntaRNA*, used for *IntaRNA* `--outMaxE` option. Default value is 0. |
 | `-b` or `--suboptimal` | reported number of interaction sites on each target RNA, used for *RNAhybrid* `-b` option and *IntaRNA* `-n` option. Default value is 1. |
 | `-s` or `--seed_len`   | For *RNAhybrid*, threshold of maximum complementary length interactions with maximum complementary length less than it are filtered out. <br/>For *IntaRNA*, threshold of the number of base pairs within the seed sequences, used for *IntaRNA* `-seedBP` option.<br/>Default value is 6 |
+
+### Elapsed Time & Output File Size
+
+Take **1** tRF (*tRF-1001*) and the default target RNAs (**100,218** Protein-coding transcript sequences) for example. All options are leaving as default (No parallel computing)
+
+Elapsed time for whole pipeline: 48.26 hours
+
+* running *RNAhybrid*: 0.72 hours
+* running *IntaRNA*: 47.50 hours
+* consensus target predictions: 0.02 hours
+
+File size of output CSV files:
+
+* `rnahybrid_results.csv`: 60 MB; including 90,398 target site entries
+* `intarna_results.csv`: 58 MB; including 100,141 target site entries
+* `consensus_results.csv`: 28 MB; including 22,492 *RNAhybrid* entries and 22,492 *IntaRNA* entries
+
+It's recommended to **turn on the parallel computing by specifying `-n` or `--n_cores` option, which will significantly reduce the running time of *IntaRNA***
 
 ## Citation
 
@@ -83,4 +101,4 @@ Ningshan Li, Nayang Shan, Lingeng Lu, Zuoheng Wang. tRFtarget: a database for tr
 
 Users are welcome to send feedbacks, suggestions or comments related to the **tRFtarget database** through our GitHub repository [tRFtarget](https://github.com/ZWang-Lab/tRFtarget).
 
-For issues in using **tRFtarget pipeline**, please report to GitHub repository [tRFtarget-pipeline](https://github.com/ZWang-Lab/tRFtarget-pipeline).
+For issues in using **tRFtarget pipeline**, please report to this GitHub repository [tRFtarget-pipeline](https://github.com/ZWang-Lab/tRFtarget-pipeline).
