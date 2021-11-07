@@ -59,14 +59,14 @@ The output of tRFtarget pipeline are 6 *CSV* files located in the `<path>` folde
 3. `rnahybrid_results.csv` : predicted RNA-RNA interactions by *RNAHybrid*
 4. `intarna_results.csv` : predicted RNA-RNA interactions by *IntaRNA*
 5. `consensus_results.csv` : a consensus predictions between *RNAHybrid* and *IntaRNA*. The definition of consensus please refer the [Definition of consensus entries in *RNAhybrid* and *IntaRNA* predictions](http://trftarget.net/manual) section in tRFtarget database
-6. `tRF_level_consensus_stats.csv` : a summary of numbers of interactions predicted by *RNAHybrid* and *IntaRNA*, as well as the number of consensus predictions
+6. `tRF_level_consensus_stats.csv` : a summary of numbers of interactions predicted by *RNAHybrid* and *IntaRNA*, as well as the number of consensus predictions. It also includes the percentage of consensus predictions in *RNAHybrid* and *IntaRNA* predictions, respectively
 
 ### All Options
 
 | Option                 | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |
 | `-q` or`--query`       | FASTA file of query small RNAs. Required.                    |
-| `-t` or `--target`     | FASTA file of target RNAs. If not provided, use 100,218 Protein-coding transcript sequences (GRCh38.p13) as target RNAs. |
+| `-t` or `--target`     | FASTA file of target RNAs. If not provided, use 100,218 **Human** Protein-coding transcript sequences (GRCh38.p13) as target RNAs. |
 | `-n` or `--n_cores`    | number of CPU cores used for parallel computing. Default value is 1 (no parallel computing). |
 | `--e_rnahybrid`        | free energy threshold for *RNAhybrid*, used for *RNAhybrid* `-e` option. Default value is -15. |
 | `--e_intarna`          | free energy threshold for *IntaRNA*, used for *IntaRNA* `--outMaxE` option. Default value is 0. |
