@@ -1,12 +1,15 @@
 # tRFtarget-pipeline
-This repository holds pipeline used in **tRFtarget database** (http://trftarget.net/). It can be used to find interaction sites on target transcripts by [*RNAhybrid*](https://bibiserv.cebitec.uni-bielefeld.de/rnahybrid) and [*IntaRNA*](http://rna.informatik.uni-freiburg.de/IntaRNA/Input.jsp) for Transfer RNA-derived fragments (tRFs) which are not indexed in the database . It can also be used for finding target genes for other small RNAs such as miRNAs
+This repository holds pipeline used in **tRFtarget database** (http://trftarget.net/). It can be used to find interaction sites on target transcripts by [*RNAhybrid*](https://bibiserv.cebitec.uni-bielefeld.de/rnahybrid) and [*IntaRNA*](http://rna.informatik.uni-freiburg.de/IntaRNA/Input.jsp) for transfer RNA-derived fragments (tRFs) which are not indexed in the database . It can also be used to find target genes for other small RNAs such as miRNAs
 
 ## Enclosed Package Version
 
 * **RNAhybrid**: 2.1.2
 * **IntaRNA**: 3.1.3 with *Vienna RNA* 2.4.14 and *boost* 1.70.0
 
-Please refer the [Prediction Tools Setting](http://trftarget.net/method) section in tRFtarget database for detailed description of option settings of *RNAhybrid* and *IntaRNA*
+Please refer the [Prediction Tools Setting](http://trftarget.net/method) section in tRFtarget database for detailed description of option settings of *RNAhybrid* and *IntaRNA*, but generally speaking, both prediction tools are tuned to provide binding sites with different prediction mechanism:
+
+* **RNAhybrid**: **minimum free energy**
+* **IntaRNA**: **minimum free energy** + **seed match** + **accessibility** feature
 
 ## Installation
 
@@ -60,6 +63,27 @@ The output of tRFtarget pipeline are 6 *CSV* files located in the `<path>` folde
 4. `intarna_results.csv` : predicted RNA-RNA interactions by *IntaRNA*
 5. `consensus_results.csv` : a consensus predictions between *RNAHybrid* and *IntaRNA*. The definition of consensus please refer the [Definition of consensus entries in *RNAhybrid* and *IntaRNA* predictions](http://trftarget.net/manual) section in tRFtarget database
 6. `tRF_level_consensus_stats.csv` : a summary of numbers of interactions predicted by *RNAHybrid* and *IntaRNA*, as well as the number of consensus predictions. It also includes the percentage of consensus predictions in *RNAHybrid* and *IntaRNA* predictions, respectively
+
+### Binding sites in *CSV* files
+
+The *CSV* files containing predicted binding sites (`rnahybrid_results.csv`, `intarna_results.csv` and `consensus_results.csv`) have the unified format. The total 14 columns are shown as below:
+
+| Column          | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `tRF_ID`        | ID of query sequence, corresponding to the sequence ID in *FASTA* file of query small RNAs. |
+| `Transcript_ID` | ID of target sequence, corresponding to the sequence ID in *FASTA* file of target RNAs. |
+| `Demo`          | An ASCII RNA-RNA interaction illustration.                   |
+| `Start_tRF`     | Start index of RNA hybrid in query sequence. Index starts at 5', and index number starts from 1. |
+| `End_tRF`       | End index of RNA hybrid in query sequence. Index starts at 5', and index number starts from 1. |
+| `Start_Target`  | Start index of RNA hybrid in target sequence. Index starts at 5', and index number starts from 1. |
+| `End_Target`    | End index of RNA hybrid in target sequence. Index starts at 5', and index number starts from 1. |
+| `MFE`           | Calculated Free Energy of that binding site.                 |
+| `P_Val`         | P value derived from statistical inference on Free Energy of binding site provided by *RNAhybrid*. Empty for *IntaRNA* predicted binding site. |
+| `HybridDP`      | VRNA dot-bracket notation for RNA hybrid (interaction sites only). |
+| `SubseqDP`      | Hybrid subsequences compatible with `HybridDP`.              |
+| `Max_Hit_DP`    | Hybrid subsequences in maximum complementary region. Please refer the [Definition of maximum complementary length](http://trftarget.net/manual) section in tRFtarget database for detailed description of maximum complementary region and maximum complementary length. |
+| `Max_Hit_Len`   | Sequence length of maximum complementary region. Please refer the [Definition of maximum complementary length](http://trftarget.net/manual) section in tRFtarget database for detailed description of maximum complementary region and maximum complementary length. |
+| `Tool`          | Tool used to predict that binding site (*RNAhybrid* or *IntaRNA*). |
 
 ### All Options
 
