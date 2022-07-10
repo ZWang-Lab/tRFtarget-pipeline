@@ -693,8 +693,8 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
             SeqIO.write(record, tmp_query_file, 'fasta')
             count += 1
             cmds.append(['/app/RNAhybrid', '-q', tmp_query_file, '-t', target_file,
-                             '-b', str(suboptimal), '-e', str(mfe), '-m', str(50000),
-                             '-n', str(50), '-s', '3utr_human', tmp_output_file])
+                             '-b', str(suboptimal), '-e', str(mfe), '-m', str(150000),
+                             '-n', str(70), '-s', '3utr_human', tmp_output_file])
             # tRF_ID是unique的
             tRF_info.append({'tRF_ID':record.id,
                              'tRF_Seq':str(record.seq).strip(),
@@ -813,7 +813,8 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
         data['Tool'] = 'RNAhybrid'
         
         # recorde all columns for saving
-        cols = ['tRF_ID', 'Transcript_ID', 'MFE', 'P_Val', 'Demo', 'Max_Hit_Len', 'Start_tRF', 'End_tRF', 'Start_Target', 'End_Target', 'Tool', 'HybridDP', 'SubseqDP', 'Max_Hit_DP']
+        # update: do not save p value 
+        cols = ['tRF_ID', 'Transcript_ID', 'MFE', 'Demo', 'Max_Hit_Len', 'Start_tRF', 'End_tRF', 'Start_Target', 'End_Target', 'Tool', 'HybridDP', 'SubseqDP', 'Max_Hit_DP']
         
         # if file does not exist write header
         if ind==0:

@@ -687,7 +687,8 @@ for i in tqdm(inta_result2.index):
 
 # 保存CSV
 # re-order columns to make sure the order is the same with RNAhybrid results
-cols = ['tRF_ID', 'Transcript_ID', 'MFE', 'P_Val', 'Demo', 'Max_Hit_Len', 'Start_tRF', 'End_tRF', 'Start_Target', 'End_Target', 'Tool', 'HybridDP', 'SubseqDP', 'Max_Hit_DP']
+# update: do not save p value
+cols = ['tRF_ID', 'Transcript_ID', 'MFE', 'Demo', 'Max_Hit_Len', 'Start_tRF', 'End_tRF', 'Start_Target', 'End_Target', 'Tool', 'HybridDP', 'SubseqDP', 'Max_Hit_DP']
 inta_result2.to_csv(output_file, index=False, columns=cols)
 print('parsed results saved to file {}!'.format(output_file))
 

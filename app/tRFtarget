@@ -86,7 +86,7 @@ fi
 eval set -- "$PARSED"
 
 # default option values
-n_cores=1 e_rnahybrid=-15 e_intarna=0 suboptimal=5 seed_len=6 target_rna_file=""
+n_cores=1 e_rnahybrid=-15 e_intarna=0 suboptimal=1 seed_len=6 target_rna_file=""
 
 
 # now extract the options in order and nicely split until we see --
@@ -126,7 +126,7 @@ while true; do
             exit 0
             ;;
         -v|--version)
-            echo "tRFtarget 0.1.0"
+            echo "tRFtarget 0.2.0"
             shift
             exit 0
             ;;

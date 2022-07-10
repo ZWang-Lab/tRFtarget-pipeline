@@ -9,6 +9,8 @@ Created on Wed Apr 22 23:34:50 2020
 评估RNAhybrid和IntaRNA预测结果的一致性
 一致性判断基于checkDuplicate函数（确认IntaRNA结果中的重复entries）改写而成
 经过考虑，offset bases threshold设为2，即前后可以相差2个bases
+
+Update: add a consensus indicator column in the original RNAhybrid and IntaRNA predictions
 """
 
 
@@ -121,7 +123,10 @@ def checkConsensus(dataframe, offset):
                 to_del += tmp_result
     
     # 最后返回to_del索引中的rows
-    return dataframe.loc[to_del]
+    
+    # update: also return the index of consensus entries
+    
+    return dataframe.loc[to_del], to_del
     
 
 ###############主函数#####################################################
@@ -215,9 +220,15 @@ output_file = os.path.join(output_path, 'consensus_results.csv')
 # Read RNAhybrid results
 rnahybrid_df = pd.read_csv(rnahybrid_file)
 print('Read {:,} RNAhybrid entries'.format(rnahybrid_df.shape[0]))
+# modify index to be different with IntaRNA entries
+rnahybrid_df.set_index('rnahybrid_' + rnahybrid_df.index.astype(str), inplace=True)
+rnahybrid_df['Consensus'] = 0
 
 intarna_df = pd.read_csv(intarna_file)
 print('Read {:,} IntaRNA entries'.format(intarna_df.shape[0]))
+# modify index to be different with RNAhybrid entries
+intarna_df.set_index('intarna_' + intarna_df.index.astype(str), inplace=True)
+intarna_df['Consensus'] = 0
 
 # 所有tRFs
 trfs = set(rnahybrid_df.tRF_ID)
@@ -238,11 +249,12 @@ for ind, trf in enumerate(trfs):
     this_rnahybrid = rnahybrid_df.loc[rnahybrid_df.tRF_ID==trf]
     this_intarna = intarna_df.loc[intarna_df.tRF_ID==trf]
     
-    output = checkConsensus(pd.concat([this_rnahybrid, this_intarna], ignore_index=True), 2)
+    output, this_consensus_index = checkConsensus(pd.concat([this_rnahybrid, this_intarna], ignore_index=False), 2)
     print('Finally get {:,} consensus entries'.format(output.shape[0]))
     print()
     
-  
+    output['Consensus'] = 1
+    
     # 数据存入CSV文件
     # if file does not exist write header
     if ind==0:
@@ -259,9 +271,23 @@ for ind, trf in enumerate(trfs):
                             'Pr_RNAhybrid': output.shape[0] / 2.0 / this_rnahybrid.shape[0],
                             'Pr_IntaRNA': output.shape[0] / 2.0 / this_intarna.shape[0]},
                            ignore_index=True)
+    
+    # update the consensus indicators in original RNAhybrid and IntaRNA predictors
+    for one_index in this_consensus_index:
+        if one_index.startswith('rnahybrid'):
+            rnahybrid_df.at[one_index, 'Consensus'] = 1
+        elif one_index.startswith('intarna'):
+            intarna_df.at[one_index, 'Consensus'] = 1
+        else:
+            raise Exception('invalid index in consensus evaluation!')
 
 # 保存统计结果
 status.to_csv(os.path.join(output_path, 'tRF_level_consensus_stats.csv'), index=False)
+
+# save updated RNAhybrid and IntaRNA predictions
+rnahybrid_df.to_csv(rnahybrid_file, index=False)
+intarna_df.to_csv(intarna_file, index=False)
+
     
 print('All tRFs entries checked. Elapsed time: {:.2f} hours'.format(
         (time()-start_time)/3600.0))
