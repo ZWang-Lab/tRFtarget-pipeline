@@ -611,7 +611,7 @@ def parseResult(text, write_file):
 
     # 转换成dataframe并保存
     tmp_data = pd.DataFrame.from_dict(result)
-    tmp_data = tmp_data.astype({'P_Val':'float64', 'tRF_ID':str,
+    tmp_data = tmp_data.astype({'P_Val':'float64', 'tRF_ID':str, 'Transcript_ID': str,
                  'Pos':'int64', 'MFE':'float64', 'Max_Hit_Len':'int64'})
     tmp_data.to_csv(write_file, index=False)
     return True
@@ -653,7 +653,7 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
     # 最终保存的大CSV路径加文件名
     binding_file = os.path.join(output_path, 'rnahybrid_results.csv')
     trf_info_file = os.path.join(output_path, 'trfs_info.csv')
-    run_info_file = os.path.join(output_path, 'trf_rnahybrid_ana_info.csv')
+    #run_info_file = os.path.join(output_path, 'trf_rnahybrid_ana_info.csv')
     tran_info_file = os.path.join(output_path, 'transcripts_info.csv')
     
     # 测试target mRNA文件是否为fasta格式
@@ -696,8 +696,8 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
                              '-b', str(suboptimal), '-e', str(mfe), '-m', str(150000),
                              '-n', str(70), '-s', '3utr_human', tmp_output_file])
             # tRF_ID是unique的
-            tRF_info.append({'tRF_ID':record.id,
-                             'tRF_Seq':str(record.seq).strip(),
+            tRF_info.append({'tRF_ID': str(record.id).strip(),
+                             'tRF_Seq': str(record.seq).strip(),
                              'tRF_Length': len(record.seq.strip())})
     print('Total {:d} tRF sequences saved in temporary directory "{}".'.format(count, directory))
     
@@ -708,7 +708,7 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
     for item in tRF_info:
         trf_seq[item['tRF_ID']] = item['tRF_Seq'].replace('T', 'U')
     # check whether all tRF IDs are unique
-    assert(len(trf_seq) == count)
+    assert len(trf_seq) == count, 'Duplicated IDs exist in the tRF fasta file!'
         
     del tRF_info
     
@@ -716,7 +716,7 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
     print('Total number of CPUs: {:d}.'.format(cpu_count()))
     print('{:d} CPUs will be used for RNAhybrid.'.format(n_cores))
     pool = Pool(n_cores)
-    results = pool.map(rna_work, cmds)
+    pool.map(rna_work, cmds)
     # 关闭线程池，等待工作结束
     pool.close()
     pool.join()
@@ -743,7 +743,7 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
     with open(target_file, 'rt') as f:
         for record in SeqIO.parse(f, 'fasta'):
             # skip transcript ID parsing
-            rna_seq.append({'Trans_ID': record.id,
+            rna_seq.append({'Trans_ID': str(record.id).strip(),
                             'Trans_Seq': str(record.seq).strip(),
                             'Trans_Length': len(record.seq.strip())})
 
@@ -753,8 +753,8 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
     tran_seq = {}
     for item in rna_seq:
         tran_seq[item['Trans_ID']] = item['Trans_Seq'].replace('T', 'U')
-    # check whether all tRF IDs are unique
-    assert(len(tran_seq) == len(rna_seq))
+    # check whether all transcript IDs are unique
+    assert len(tran_seq) == len(rna_seq), 'Duplicated IDs exist in the target fasta file!'
     
     del rna_seq
     
@@ -763,7 +763,7 @@ def rna_analysis(target_file, query_file, output_path, n_cores, mfe=-15, mcl=6, 
     for ind, one_file in enumerate(output_list):
         start_time = time()
         print('Processing file "{}"...'.format(one_file))
-        data = pd.read_csv(one_file)
+        data = pd.read_csv(one_file, dtype={'tRF_ID': str, 'Transcript_ID':str})
             
         # 抽取匹配长度大于等于6的序列
         print('Total {:,} entries'.format(data.shape[0]))

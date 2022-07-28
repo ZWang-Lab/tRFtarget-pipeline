@@ -218,13 +218,13 @@ output_file = os.path.join(output_path, 'consensus_results.csv')
 # Read all results at once, it will cost huge RAM
 
 # Read RNAhybrid results
-rnahybrid_df = pd.read_csv(rnahybrid_file)
+rnahybrid_df = pd.read_csv(rnahybrid_file, dtype={'tRF_ID': str, 'Transcript_ID': str})
 print('Read {:,} RNAhybrid entries'.format(rnahybrid_df.shape[0]))
 # modify index to be different with IntaRNA entries
 rnahybrid_df.set_index('rnahybrid_' + rnahybrid_df.index.astype(str), inplace=True)
 rnahybrid_df['Consensus'] = 0
 
-intarna_df = pd.read_csv(intarna_file)
+intarna_df = pd.read_csv(intarna_file, dtype={'tRF_ID': str, 'Transcript_ID': str})
 print('Read {:,} IntaRNA entries'.format(intarna_df.shape[0]))
 # modify index to be different with RNAhybrid entries
 intarna_df.set_index('intarna_' + intarna_df.index.astype(str), inplace=True)

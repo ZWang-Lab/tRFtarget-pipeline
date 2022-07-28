@@ -568,7 +568,7 @@ output_file = os.path.join(output_path, 'parsed_intarna_results.csv')
 
 # 1.tRF信息，用tRF ID索引
 # 读取csv文件，并保存成dict格式，并且'T'变成'U
-tmp_data = pd.read_csv(trf_info_file)
+tmp_data = pd.read_csv(trf_info_file, dtype={'tRF_ID': str})
 tRF_seq = {}
 for i in tmp_data.index:
     tRF_seq[tmp_data.at[i, 'tRF_ID']] = tmp_data.at[i, 'tRF_Seq'].replace('T', 'U')
@@ -586,7 +586,7 @@ del tmp_data
 
 # 4.transcript 序列信息rna_seq，用transcript ensembl id索引
 # 读取csv文件，并保存成dict格式，并且'T'变成'U
-tmp_data = pd.read_csv(tran_info_file)
+tmp_data = pd.read_csv(tran_info_file, dtype={'Trans_ID': str})
 rna_seq = {}
 for i in tmp_data.index:
     rna_seq[tmp_data.at[i, 'Trans_ID']] = tmp_data.at[i, 'Trans_Seq'].replace('T', 'U')
@@ -597,7 +597,7 @@ del tmp_data
 # ---------------------解析intaRNA结果------------------------------
 # 读入CSV文件
 start_time = time()
-inta_result = pd.read_csv(intarna_file, sep=';', dtype={'id2':object})
+inta_result = pd.read_csv(intarna_file, sep=';', dtype={'id1': str, 'id2': str})
 print('All entries loaded. Elapsed time: {:.2f} minutes'.format(
         (time()-start_time)/60.0))
 
