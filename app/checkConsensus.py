@@ -235,9 +235,8 @@ trfs = set(rnahybrid_df.tRF_ID)
 print('total {:d} tRFs'.format(len(trfs)))
 
 
-# 统计结果的dataframe
-status = pd.DataFrame(columns=['tRF_ID', '#RNAhybrid', '#IntaRNA',
-                               '#Consensus', 'Pr_RNAhybrid', 'Pr_IntaRNA'])
+# 统计结果的list of dicts
+status = []
 
 # 遍历所有tRFs
 for ind, trf in enumerate(trfs):
@@ -264,13 +263,12 @@ for ind, trf in enumerate(trfs):
     
     
     # less efficient
-    status = status.append({'tRF_ID': trf,
-                            '#RNAhybrid': this_rnahybrid.shape[0], 
-                            '#IntaRNA': this_intarna.shape[0],
-                            '#Consensus': output.shape[0],
-                            'Pr_RNAhybrid': output.shape[0] / 2.0 / this_rnahybrid.shape[0],
-                            'Pr_IntaRNA': output.shape[0] / 2.0 / this_intarna.shape[0]},
-                           ignore_index=True)
+    status.append({'tRF_ID': trf,
+                   '#RNAhybrid': this_rnahybrid.shape[0], 
+                   '#IntaRNA': this_intarna.shape[0],
+                   '#Consensus': output.shape[0],
+                   'Pr_RNAhybrid': output.shape[0] / 2.0 / this_rnahybrid.shape[0],
+                   'Pr_IntaRNA': output.shape[0] / 2.0 / this_intarna.shape[0]})
     
     # update the consensus indicators in original RNAhybrid and IntaRNA predictors
     for one_index in this_consensus_index:
@@ -282,7 +280,7 @@ for ind, trf in enumerate(trfs):
             raise Exception('invalid index in consensus evaluation!')
 
 # 保存统计结果
-status.to_csv(os.path.join(output_path, 'tRF_level_consensus_stats.csv'), index=False)
+pd.DataFrame(status).to_csv(os.path.join(output_path, 'tRF_level_consensus_stats.csv'), index=False)
 
 # save updated RNAhybrid and IntaRNA predictions
 rnahybrid_df.to_csv(rnahybrid_file, index=False)

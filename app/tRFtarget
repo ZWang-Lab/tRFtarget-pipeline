@@ -126,7 +126,7 @@ while true; do
             exit 0
             ;;
         -v|--version)
-            echo "tRFtarget 0.2.1"
+            echo "tRFtarget 0.3.0"
             shift
             exit 0
             ;;
@@ -188,7 +188,7 @@ intarna_start=$(date "+%s")
 echo
 echo "Start target prediction by IntaRNA"
 IntaRNA --version
-IntaRNA -q $query_rna_file -t $target_rna_file  --threads=$n_cores --mode=M --seedBP=$seed_len -n $suboptimal --outMode=C --out=$data_folder/intarna_results.csv --outMaxE=$e_intarna
+IntaRNA -q $query_rna_file -t $target_rna_file  --threads=$n_cores --mode=H --seedBP=$seed_len -n $suboptimal --outMode=C --out=$data_folder/intarna_results.csv --outMaxE=$e_intarna --outOverlap=Q
 intarna_stop=$(date "+%s")
 
 # avoid using bc to calculate elapsed time

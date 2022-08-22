@@ -1,10 +1,10 @@
 # tRFtarget-pipeline
 This repository holds pipeline used in **tRFtarget database** (http://trftarget.net/). It can be used to find interaction sites on target transcripts by [*RNAhybrid*](https://bibiserv.cebitec.uni-bielefeld.de/rnahybrid) and [*IntaRNA*](http://rna.informatik.uni-freiburg.de/IntaRNA/Input.jsp) for transfer RNA-derived fragments (tRFs) which are not indexed in the database . It can also be used to find target genes for other small RNAs such as miRNAs
 
-## Enclosed Package Version
+## Enclosed Package Version (after version 0.3.0)
 
 * ***RNAhybrid***: 2.1.2
-* ***IntaRNA***: 3.1.3 with *Vienna RNA* 2.4.14 and *boost* 1.70.0
+* ***IntaRNA***: 3.3.1 with *Vienna RNA* 2.5.1 and *boost* 1.74.0
 
 Please refer the [Prediction Tools Setting](http://trftarget.net/method) section in tRFtarget database for detailed description of option settings of *RNAhybrid* and *IntaRNA* in this tRFtarget-pipeline, but generally speaking, both prediction tools are tuned to provide binding sites with different prediction mechanism:
 
@@ -17,18 +17,18 @@ We provided **Docker** or **Singularity** images for immediate using of tRFtarge
 
 ```bash
 # For Docker
-docker pull az7jh2/trftarget:0.2.1
+docker pull az7jh2/trftarget:0.3.0
 # For Singularity
-singularity build trftarget-0.2.1.sif docker://az7jh2/trftarget:0.2.1
+singularity build trftarget-0.3.0.sif docker://az7jh2/trftarget:0.3.0
 ```
 
 To test the installation (should print the version of tRFtarget-pipeline)
 
 ```bash
 # For Docker
-docker run -it --rm az7jh2/trftarget:0.2.1 tRFtarget -v
+docker run -it --rm az7jh2/trftarget:0.3.0 tRFtarget -v
 # For Singularity
-singularity exec trftarget-0.2.1.sif tRFtarget -v
+singularity exec trftarget-0.3.0.sif tRFtarget -v
 ```
 
 ## Usage
@@ -39,9 +39,9 @@ The command to run tRFtarget-pipeline with default setting is:
 
 ```bash
 # For Docker
-docker run -it --rm -v <path>:/data az7jh2/trftarget:0.2.1 tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
+docker run -it --rm -v <path>:/data az7jh2/trftarget:0.3.0 tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
 # For Singularity
-singularity exec -B <path>:/data trftarget-0.2.1.sif tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
+singularity exec -B <path>:/data trftarget-0.3.0.sif tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
 ```
 
 `<path>` is the valid and **absolute** path of the folder in the host machine to be mounted in the Docker/Singularity image for data exchanging (`readlink -f` can be used to get the absolute path of one folder)
@@ -97,7 +97,7 @@ The *CSV* files containing predicted binding sites (`rnahybrid_results.csv`, `in
 | `-b` or `--suboptimal` | Reported number of interaction sites on each target RNA, used for *RNAhybrid* `-b` option and *IntaRNA* `-n` option. Default value is 1. |
 | `-s` or `--seed_len`   | For *RNAhybrid*, threshold of maximum complementary length interactions with maximum complementary length less than it are filtered out. <br/>For *IntaRNA*, threshold of the number of base pairs within the seed sequences, used for *IntaRNA* `-seedBP` option.<br/>Default value is 6 |
 
-### Elapsed Time & Output File Size
+### Elapsed Time & Output File Size (before version 0.3.0)
 
 Take **1** tRF (*tRF-1001*) and the default target RNAs (**100,218** Protein-coding transcript sequences) for example. All options are leaving as default (No parallel computing)
 
