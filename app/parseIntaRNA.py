@@ -9,13 +9,14 @@ Created on Fri Jan 24 02:59:10 2020
 Parse result from IntaRNA, and save into a MySQL database
 本次自定义程序，生成interaction的示意图。经过与IntaRNA画出的示意图进行比对，本人程序生成的示意图均正确
 函数getDemo，getMaxHitDP，checkDuplicate也用于解析RNAhybrid的结果
+Update: processing file in Chunk to reduce RAM consuming
 '''
 
 
 import pandas as pd
 from tqdm import tqdm
 import re
-from math import floor
+from math import floor, ceil
 from time import time
 import sys, os
 from getopt import getopt
@@ -670,26 +671,39 @@ if 'to_del_set' in locals():
 
 
 # 解析获得其余的features
-print('Start parsing the intaRNA result to get the rest features...')
-for i in tqdm(inta_result2.index):
+# process in batch
+print('Start parsing the intaRNA result to get the rest features in Chunk...')
+
+# re-order columns to make sure the order is the same with RNAhybrid results
+# update: do not save p value
+cols = ['tRF_ID', 'Transcript_ID', 'MFE', 'Demo', 'Max_Hit_Len', 'Start_tRF', 'End_tRF', 'Start_Target', 'End_Target', 'Tool', 'HybridDP', 'SubseqDP', 'Max_Hit_DP']
+
+chunksize = 1e5
+count = ceil(inta_result2.shape[0] / chunksize)
+for chunk_i in tqdm(range(count)):
     
-    inta_result2.at[i, 'Demo'] = getDemo(rna_seq[inta_result2.at[i, 'Transcript_ID'].strip()],
-                  inta_result2.at[i, 'Start_Target'], inta_result2.at[i, 'End_Target'],
-                  tRF_seq[inta_result2.at[i, 'tRF_ID'].strip()],
-                  inta_result2.at[i, 'Start_tRF'], inta_result2.at[i, 'End_tRF'],
-                  inta_result2.at[i, 'SubseqDP'], inta_result2.at[i, 'HybridDP'])
+    tmp_df = inta_result2.iloc[int(chunk_i*chunksize):int((chunk_i+1)*chunksize), :]
     
-    inta_result2.at[i, 'Max_Hit_Len'] = getMaxHitLen(inta_result2.at[i, 'Demo'])
-    inta_result2.at[i, 'Max_Hit_DP'] = getMaxHitDP(inta_result2.at[i, 'Demo'], int(inta_result2.at[i, 'Max_Hit_Len']))
+    for i in tmp_df.index:
+    
+        tmp_df.at[i, 'Demo'] = getDemo(rna_seq[tmp_df.at[i, 'Transcript_ID'].strip()],
+                                       tmp_df.at[i, 'Start_Target'], tmp_df.at[i, 'End_Target'],
+                                       tRF_seq[tmp_df.at[i, 'tRF_ID'].strip()],
+                                       tmp_df.at[i, 'Start_tRF'], tmp_df.at[i, 'End_tRF'],
+                                       tmp_df.at[i, 'SubseqDP'], tmp_df.at[i, 'HybridDP'])
+    
+        tmp_df.at[i, 'Max_Hit_Len'] = getMaxHitLen(tmp_df.at[i, 'Demo'])
+        tmp_df.at[i, 'Max_Hit_DP'] = getMaxHitDP(tmp_df.at[i, 'Demo'], int(tmp_df.at[i, 'Max_Hit_Len']))
+    
+    # 保存CSV, if file does not exist write header
+    if chunk_i == 0:
+        tmp_df.to_csv(output_file, header=True, columns=cols, index=False)
+    else: # else it exists so append without writing the header
+        tmp_df.to_csv(output_file, mode='a', header=False, columns=cols, index=False)
     
 # inta_result2.info(memory_usage='deep') # dataframe占用内存
 
 
-# 保存CSV
-# re-order columns to make sure the order is the same with RNAhybrid results
-# update: do not save p value
-cols = ['tRF_ID', 'Transcript_ID', 'MFE', 'Demo', 'Max_Hit_Len', 'Start_tRF', 'End_tRF', 'Start_Target', 'End_Target', 'Tool', 'HybridDP', 'SubseqDP', 'Max_Hit_DP']
-inta_result2.to_csv(output_file, index=False, columns=cols)
 print('parsed results saved to file {}!'.format(output_file))
 
 # 整个pipeline耗时

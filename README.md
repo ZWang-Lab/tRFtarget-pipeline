@@ -17,18 +17,18 @@ We provided **Docker** or **Singularity** images for immediate using of tRFtarge
 
 ```bash
 # For Docker
-docker pull az7jh2/trftarget:0.3.0
+docker pull az7jh2/trftarget:0.3.1
 # For Singularity
-singularity build trftarget-0.3.0.sif docker://az7jh2/trftarget:0.3.0
+singularity build trftarget-0.3.1.sif docker://az7jh2/trftarget:0.3.1
 ```
 
 To test the installation (should print the version of tRFtarget-pipeline)
 
 ```bash
 # For Docker
-docker run -it --rm az7jh2/trftarget:0.3.0 tRFtarget -v
+docker run -it --rm az7jh2/trftarget:0.3.1 tRFtarget -v
 # For Singularity
-singularity exec trftarget-0.3.0.sif tRFtarget -v
+singularity exec trftarget-0.3.1.sif tRFtarget -v
 ```
 
 ## Usage
@@ -39,9 +39,9 @@ The command to run tRFtarget-pipeline with default setting is:
 
 ```bash
 # For Docker
-docker run -it --rm -v <path>:/data az7jh2/trftarget:0.3.0 tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
+docker run -it --rm -v <path>:/data az7jh2/trftarget:0.3.1 tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
 # For Singularity
-singularity exec -B <path>:/data trftarget-0.3.0.sif tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
+singularity exec -B <path>:/data trftarget-0.3.1.sif tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
 ```
 
 `<path>` is the valid and **absolute** path of the folder in the host machine to be mounted in the Docker/Singularity image for data exchanging (`readlink -f` can be used to get the absolute path of one folder)

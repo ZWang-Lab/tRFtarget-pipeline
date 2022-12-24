@@ -126,7 +126,7 @@ while true; do
             exit 0
             ;;
         -v|--version)
-            echo "tRFtarget 0.3.0"
+            echo "tRFtarget 0.3.1"
             shift
             exit 0
             ;;
