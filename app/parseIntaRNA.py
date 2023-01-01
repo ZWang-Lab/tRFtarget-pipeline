@@ -682,7 +682,10 @@ chunksize = 1e5
 count = ceil(inta_result2.shape[0] / chunksize)
 for chunk_i in tqdm(range(count)):
     
-    tmp_df = inta_result2.iloc[int(chunk_i*chunksize):int((chunk_i+1)*chunksize), :]
+    # make a DEEP copy of current processing DataFrame to make it independent from the whole large DataFrame
+    # otherwise the generated new features will still be saved into the whole large since the sub DataFrame is only a reference or view of the initial DataFrame, then the RAM consumed by the whole DataFrame will still increase along with processing, even delete the sub dataframe CAN NOT free the RAM
+    # Python use Garbageg Collector to release unreferenced memory ONLY when this object isn't referenced by anything
+    tmp_df = inta_result2.iloc[int(chunk_i*chunksize):int((chunk_i+1)*chunksize), :].copy()
     
     for i in tmp_df.index:
     
