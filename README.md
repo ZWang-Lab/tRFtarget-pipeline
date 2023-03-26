@@ -39,7 +39,7 @@ All binding sites in **tRFtarget database** (http://trftarget.net/) are predicte
 
    3.5 [Definition of Maximum Complementary Length (MCL)](#35-definition-of-maximum-complementary-length-mcl)
 
-   3.6 [Definition of duplicated entries in *IntaRNA* output](#36-definition-of-duplicated-entries-in-intarna-output)
+   3.6 [Definition of Duplicated entries in *IntaRNA* output](#36-definition-of-duplicated-entries-in-intarna-output)
 
 4. [Citation](#4-citation)
 
@@ -93,12 +93,12 @@ singularity exec -B <path>:/data trftarget-0.3.2.sif tRFtarget -q <query_fasta_f
 
 The output of tRFtarget-pipeline are **6 CSV files** located in the `<path>` folder:
 
-1. `trfs_info.csv` : show tRF ID, sequence and sequence length
-2. `transcripts_info.csv` : show transcript ID, sequence and length
-3. `rnahybrid_results.csv` : predicted RNA-RNA interactions by *RNAHybrid*
-4. `intarna_results.csv` : predicted RNA-RNA interactions by *IntaRNA*
-5. `consensus_results.csv` : a consensus predictions between *RNAHybrid* and *IntaRNA*. The definition of consensus can be referred in the [Definition of consensus entries in *RNAhybrid* and *IntaRNA* predictions](http://trftarget.net/manual) section in tRFtarget database
-6. `tRF_level_consensus_stats.csv` : a summary of numbers of interactions predicted by *RNAHybrid* and *IntaRNA*, as well as the number of consensus predictions. It also includes the percentage of consensus predictions in *RNAHybrid* and *IntaRNA* predictions, respectively.
+1. `trfs_info.csv` : show tRF ID, sequence and sequence length.
+2. `transcripts_info.csv` : show transcript ID, sequence and length.
+3. `rnahybrid_results.csv` : processed tRF-RNA interactions predicted by *RNAHybrid.*
+4. `intarna_results.csv` : processed tRF-RNA interactions predicted by *IntaRNA*.
+5. `consensus_results.csv` : consensus binding sites between *RNAHybrid* and *IntaRNA* predictions. For definition of consensus please refer [3.4 Consensus evaluation.](#34-consensus-evaluation)
+6. `tRF_level_consensus_stats.csv` : a summary of numbers of binding sites predicted by *RNAHybrid* and *IntaRNA*, as well as the number of consensus binding sites. It also includes the percentage of consensus binding sites in *RNAHybrid* and *IntaRNA* predictions, respectively.
 
 ### 2.4 Binding sites in CSV files
 
@@ -209,7 +209,7 @@ MCL is defined as the length of the **longest successively complementary sequenc
 
 ![mcl example](img/mcl.png)
 
-### 3.6 Definition of duplicated entries in *IntaRNA* output
+### 3.6 Definition of Duplicated entries in *IntaRNA* output
 
 *IntaRNA* may return **similar** binding sites between the same tRF and target RNA, and among these similar entries only the one with the **lowest free energy** will be kept. 
 
