@@ -1,0 +1,132 @@
+# ref https://github.com/marketplace/actions/setup-miniconda
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# GitHub recommends pinning actions to a commit SHA.
+# To get a newer version, you will need to update the SHA.
+# You can also reference a tag or branch, but the action may change without warning.
+
+# By default, GitHub Actions uses different shells based on the runner operating system:
+# Ubuntu (Linux) and macOS: bash
+# Windows: cmd
+
+# We can test tRFtarget-pipeline on multiple OS by setting os: ["ubuntu-latest", "macos-13", "windows-latest"]
+# Note: We use macOS 13 Ventura instead of the latest macOS because ARM64 processors (M1, M2, M3 series) may have issues running the Docker image.
+# The Docker image supports the linux/amd64 architecture, so it will not work on macOS with an ARM64 CPU or on Windows
+
+name: Test tRFtarget-pipeline across different OS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+          
+  test-docker:
+    name: test-docker (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        # bash login mode is needed for activate environment in Ubuntu and macOS (ref https://github.com/marketplace/actions/setup-miniconda#important)
+        # cmd in Windows is fine
+        shell: bash -el {0}  # `-e` means the shell will stop executing if any command returns a non-zero status (error). `-l` makes Bash act as if it had been invoked as a login shell
+    strategy:
+      fail-fast: false  # all job combinations will run to completion even if one of them fails
+      matrix:  # uses a matrix strategy to run multiple test configurations across different operating systems and Python versions
+        os: ["ubuntu-latest", "macos-13"]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download test files for Ubuntu and macOS # note to use URL for the raw file
+        if: runner.os != 'Windows'
+        run: |
+          mkdir testfolder
+          wget -P "$(pwd)/testfolder" https://raw.githubusercontent.com/ZWang-Lab/tRFtarget-pipeline/main/sample_data/test_tRF.fasta
+          wget -P "$(pwd)/testfolder" https://raw.githubusercontent.com/ZWang-Lab/tRFtarget-pipeline/main/sample_data/test_transcript.fasta
+          
+      #- name: Download test files for Windows
+      #  if: runner.os == 'Windows'
+      #  shell: powershell
+      #  run: |
+      #    mkdir testfolder
+      #    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/ZWang-Lab/tRFtarget-pipeline/main/sample_data/test_tRF.fasta' -OutFile 'testfolder/test_tRF.fasta'
+      #    Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/ZWang-Lab/tRFtarget-pipeline/main/sample_data/test_transcript.fasta' -OutFile 'testfolder/test_transcript.fasta'
+      
+      - name: Extract version number from tag on Ubuntu and macOS  # note to create an environment variable for later reference; note the workflow is not trigged by release event; note only works for public repo
+        if: runner.os != 'Windows'
+        run: |
+          LATEST_TAG=$(curl --silent "https://api.github.com/repos/ZWang-Lab/tRFtarget-pipeline/releases/latest" | awk -F '"' '/"tag_name":/ {print $4}')
+          echo "LATEST_TAG: $LATEST_TAG"
+          if [ -z "$LATEST_TAG" ]; then
+            echo "Error: Failed to retrieve the latest tag"
+            exit 1
+          fi
+          VERSION_NUMBER=${LATEST_TAG#v}
+          echo "VERSION_NUMBER: $VERSION_NUMBER"
+          echo "VERSION_NUMBER=$VERSION_NUMBER" >> $GITHUB_ENV
+      
+      #- name: Extract version number from tag on windows  # note to create an environment variable for later reference; note the workflow is not trigged by release event; note only works for public repo
+      #  if: runner.os == 'Windows'  # https://github.com/actions/runner/issues/1636
+      #  shell: powershell
+      #  run: |
+      #    $latestTag = (Invoke-WebRequest -Uri "https://api.github.com/repos/ZWang-Lab/tRFtarget-pipeline/releases/latest" | ConvertFrom-Json).tag_name
+      #    $versionNumber = $latestTag -replace '^v'
+      #    echo "VERSION_NUMBER=$versionNumber" | Out-File -FilePath $env:GITHUB_ENV -Append # no need for -Encoding utf8
+      
+      - name: Check if Homebrew is installed on macOS
+        if: runner.os == 'macOS'
+        run: |
+          if ! command -v brew &> /dev/null; then
+            echo "Homebrew not found. Installing Homebrew..."
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          else
+            echo "Homebrew is already installed."
+          fi
+
+      - name: Install Docker using Homebrew on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install tree colima docker
+
+      - name: Start Docker on macOS  # https://stackoverflow.com/a/76490257
+        if: runner.os == 'macOS'
+        run: |
+          colima start
+          while ! docker info &>/dev/null; do
+            echo "Waiting for Docker to start...It can take over 2 minutes..."
+            sleep 20
+          done
+      
+      - name: Download docker image with specific version
+        run: |
+          docker pull az7jh2/trftarget:${{ env.VERSION_NUMBER }}
+      
+      - name: Test version
+        run: |
+          PACKAGE_VERSION=$(docker run --rm az7jh2/trftarget:${{ env.VERSION_NUMBER }} tRFtarget -v | tail -n 1 | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+          if [ "$PACKAGE_VERSION" == "${{ env.VERSION_NUMBER }}" ]; then
+            echo "Version matches: $PACKAGE_VERSION"
+          else
+            echo "Version mismatch. Expected ${{ env.VERSION_NUMBER }}, but got $PACKAGE_VERSION"
+            exit 1
+          fi
+      
+      - name: Test pipeline
+        run: |
+          docker run --rm -v $(pwd)/testfolder:/data az7jh2/trftarget:${{ env.VERSION_NUMBER }} tRFtarget -q test_tRF.fasta \
+                           -t test_transcript.fasta \
+                           -n 4 \
+                           --e_rnahybrid -15 \
+                           --e_intarna 0 \
+                           -b 1 \
+                           -s 6
+      
+      - name: Print result
+        run: |
+          docker run --rm az7jh2/trftarget:${{ env.VERSION_NUMBER }} python --version
+          docker run --rm az7jh2/trftarget:${{ env.VERSION_NUMBER }} tRFtarget -v
+          tree $(pwd)/testfolder

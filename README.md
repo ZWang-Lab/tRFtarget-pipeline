@@ -1,5 +1,5 @@
 # tRFtarget-pipeline
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ZWang-Lab/tRFtarget-pipeline)](https://github.com/ZWang-Lab/tRFtarget-pipeline) [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/az7jh2/trftarget?label=docker)](https://hub.docker.com/repository/docker/az7jh2/trftarget/general)
+![OS](https://img.shields.io/badge/os-linux%20%7C%20macOS-blue) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ZWang-Lab/tRFtarget-pipeline)](https://github.com/ZWang-Lab/tRFtarget-pipeline) [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/az7jh2/trftarget?label=docker)](https://hub.docker.com/repository/docker/az7jh2/trftarget/general)
 
 ![flowchart](img/flowchart.png)
 
@@ -49,7 +49,7 @@ All binding sites in **tRFtarget database** (http://trftarget.net/) are predicte
 
 We provide **online service** of tRFtarget-pipeline in [http://trftarget.net/online_targets](http://trftarget.net/online_targets).
 
-For local usage, we provide **Docker** or **Singularity** images for immediate using.
+For local usage, we provide **Docker** or **Singularity** images for immediate use. NOTE The tRFtarget-pipeline image currently supports Linux operating systems such as Ubuntu and macOS with Intel CPUs (not Apple Silicon series such as M1, M2, M3, etc.).
 
 ```bash
 # For Docker
