@@ -1,5 +1,5 @@
 # tRFtarget-pipeline
-![OS](https://img.shields.io/badge/os-linux%20%7C%20macOS-blue) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ZWang-Lab/tRFtarget-pipeline)](https://github.com/ZWang-Lab/tRFtarget-pipeline) [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/az7jh2/trftarget?label=docker)](https://hub.docker.com/repository/docker/az7jh2/trftarget/general)
+![OS](https://img.shields.io/badge/os-linux%20%7C%20macOS-blue) [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ZWang-Lab/tRFtarget-pipeline)](https://github.com/ZWang-Lab/tRFtarget-pipeline) [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/az7jh2/trftarget?label=docker)](https://hub.docker.com/repository/docker/az7jh2/trftarget/general) [![DOI](https://zenodo.org/badge/420627652.svg)](https://doi.org/10.5281/zenodo.8327973)
 
 ![flowchart](img/flowchart.png)
 
@@ -219,9 +219,10 @@ For example, all the 5 binding sites between tRF-3001a and transcript DCTPP1-201
 
 ## 4. Citation
 
-If you use tRFtarget-pipeline, please cite:
+If you use tRFtarget or tRFtarget pipeline, please cite both the latest tRFtarget publication as well as the initial paper that introduced tRFtarget:
 
-Ningshan Li, Nayang Shan, Lingeng Lu, Zuoheng Wang. tRFtarget: a database for transfer RNA-derived fragment targets. *Nucleic Acids Research*, 2020, gkaa831. [https://doi.org/10.1093/nar/gkaa831](https://doi.org/10.1093/nar/gkaa831)
+* Ningshan Li, Siqiong Yao, Guangjun Yu, Lingeng Lu, Zuoheng Wang. tRFtarget 2.0: expanding the targetome landscape of transfer RNA-derived fragments. *Nucleic Acids Research*, Volume 52, Issue D1, 5 January 2024, Pages D345–D350. https://doi.org/10.1093/nar/gkad815.
+* Ningshan Li, Nayang Shan, Lingeng Lu, Zuoheng Wang. tRFtarget: a database for transfer RNA-derived fragment targets. *Nucleic Acids Research*, Volume 49, Issue D1, 8 January 2021, Pages D254–D260. https://doi.org/10.1093/nar/gkaa831.
 
 ## 5. Contact us
 
