@@ -59,7 +59,14 @@ jobs:
       - name: Extract version number from tag on Ubuntu and macOS  # note to create an environment variable for later reference; note the workflow is not trigged by release event; note only works for public repo
         if: runner.os != 'Windows'
         run: |
-          LATEST_TAG=$(curl --silent "https://api.github.com/repos/ZWang-Lab/tRFtarget-pipeline/releases/latest" | awk -F '"' '/"tag_name":/ {print $4}')
+          JSON=$(curl --silent "https://api.github.com/repos/ZWang-Lab/tRFtarget-pipeline/releases/latest")
+          if command -v jq >/dev/null 2>&1; then          # preferred path, more robust in parsing
+            echo "Use jq to parse json"
+            LATEST_TAG=$(printf '%s\n' "$JSON" | jq -r .tag_name)
+          else           # POSIX fallback
+            echo "Use awk to parse json"
+            LATEST_TAG=$(printf '%s\n' "$JSON" | awk -F'"' '/"tag_name":/ {gsub(/^:?[[:space:]]*/, "", $4); print $4}')
+          fi
           echo "LATEST_TAG: $LATEST_TAG"
           if [ -z "$LATEST_TAG" ]; then
             echo "Error: Failed to retrieve the latest tag"
