@@ -29,6 +29,7 @@ jobs:
   test-docker:
     name: test-docker (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    environment: package-test  # specify the environment
     defaults:
       run:
         # bash login mode is needed for activate environment in Ubuntu and macOS (ref https://github.com/marketplace/actions/setup-miniconda#important)
@@ -137,3 +138,13 @@ jobs:
           docker run --rm az7jh2/trftarget:${{ env.VERSION_NUMBER }} python --version
           docker run --rm az7jh2/trftarget:${{ env.VERSION_NUMBER }} tRFtarget -v
           tree $(pwd)/testfolder
+      
+      - name: Test pipeline under 1-core-constrained case
+        run: |
+          docker run --rm --cpus=1 -v $(pwd)/testfolder:/data az7jh2/trftarget:${{ env.VERSION_NUMBER }} tRFtarget -q test_tRF.fasta \
+                           -t test_transcript.fasta \
+                           -n 4 \
+                           --e_rnahybrid -15 \
+                           --e_intarna 0 \
+                           -b 1 \
+                           -s 6

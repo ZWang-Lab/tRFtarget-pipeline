@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ran it within the conda environment with IntaRNA 3.1.3 installed
+# ran it within the conda environment with IntaRNA 3.3.1 installed
 
 ## set environment
 
@@ -21,6 +21,9 @@ code_folder="/app"
 
 # mounted folder for exchanging files
 data_folder="/data"
+
+# current version
+cur_version="0.3.3"
 
 
 ## use enhanced getopt to parse the command options (ref: https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash/29754866#29754866)
@@ -126,7 +129,7 @@ while true; do
             exit 0
             ;;
         -v|--version)
-            echo "tRFtarget 0.3.2"
+            echo "tRFtarget-pipeline $cur_version"
             shift
             exit 0
             ;;
@@ -147,22 +150,46 @@ if [[ $# -ne 0 ]]; then
     exit 4
 fi
 
+
+echo "tRFtarget-pipeline $cur_version"
+echo 
+
 # check if the specified CPU cores exceed the total CPU cores
 # ideally the `nproc` result works on both RNAhybrid and IntaRNA, but not installed
-total_ncores=$(grep -c 'cpu cores' /proc/cpuinfo)
+# WARNING: we need to use `nproc`, which truely reflect the real number of usable CPU cores for the current process, see https://www.flamingspork.com/blog/2020/11/25/why-you-should-use-nproc-and-not-grep-proc-cpuinfo/
+# UPDATE: we install `nproc` first and use it; In IntaRNA 3.3.1 image, `nproc` already installed
+if command -v nproc >/dev/null 2>&1; then
+    total_ncores=$(nproc)
+
+elif command -v gnproc >/dev/null 2>&1; then
+    total_ncores=$(gnproc)   # macOS Homebrew GNU coreutils
+
+elif command -v sysctl >/dev/null 2>&1 && sysctl -n hw.ncpu >/dev/null 2>&1; then
+    total_ncores=$(sysctl -n hw.ncpu)   # macOS BSD; NOTE for some Linux distribution sysctl exists → but hw.ncpu does not exist
+
+else
+    # when without /proc/cpuinfo (rare but possible), Fallback to only 1 core
+    total_ncores=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null || echo 1)
+fi
+
 
 if [[ $n_cores -gt $total_ncores ]]; then
-    echo "WARNING: specified CPU cores exceed the total detected CPU cores! re-set it to the total CPU cores: $total_ncores"
+    echo "WARNING: specified CPU cores exceed the total available CPU cores! re-set it to the total available CPU cores: $total_ncores"
     n_cores=$total_ncores
+else
+    echo "Detect total available CPU cores: $total_ncores; use specified use only $n_cores CPU cores"
 fi
+echo 
 
 # if target_rna_file not specified, using default target RNA fasta file
 if [[ -z $target_rna_file ]]; then
     echo "WARNING: No target RNA file specified. Use the default 100,218 Protein-coding transcript sequences (GRCh38.p13) as target RNAs"
+    echo 
     # unzip it to mounted folder for safe
     unzip $code_folder/human_pc_transcripts.zip -d $data_folder
     target_rna_file=$data_folder/human_pc_transcripts.fasta
 fi
+
 
 # print option values
 echo "options:"
