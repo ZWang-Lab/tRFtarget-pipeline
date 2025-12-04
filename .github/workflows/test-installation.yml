@@ -141,7 +141,7 @@ jobs:
       
       - name: Test pipeline under 1-core-constrained case
         run: |
-          docker run --rm --cpus=1 -v $(pwd)/testfolder:/data az7jh2/trftarget:${{ env.VERSION_NUMBER }} tRFtarget -q test_tRF.fasta \
+          docker run --rm --cpuset-cpus=0 -v $(pwd)/testfolder:/data az7jh2/trftarget:${{ env.VERSION_NUMBER }} tRFtarget -q test_tRF.fasta \
                            -t test_transcript.fasta \
                            -n 4 \
                            --e_rnahybrid -15 \

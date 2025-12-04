@@ -49,22 +49,22 @@ All binding sites in **tRFtarget database** (http://trftarget.net/) are predicte
 
 We provide **online service** of tRFtarget-pipeline in [http://trftarget.net/online_targets](http://trftarget.net/online_targets).
 
-For local usage, we provide **Docker** or **Singularity** images for immediate use. NOTE The tRFtarget-pipeline image currently supports Linux operating systems such as Ubuntu and macOS with Intel CPUs (not Apple Silicon series such as M1, M2, M3, etc.).
+For local usage, we provide **Docker** or **Singularity** images for immediate use. NOTE The tRFtarget-pipeline image currently supports Linux operating systems such as **Ubuntu** and **macOS with Intel CPUs** (NOT Apple Silicon series such as M1, M2, M3, etc.).
 
 ```bash
 # For Docker
-docker pull az7jh2/trftarget:0.3.2
+docker pull az7jh2/trftarget:0.3.3
 # For Singularity
-singularity build trftarget-0.3.2.sif docker://az7jh2/trftarget:0.3.2
+singularity build trftarget-0.3.3.sif docker://az7jh2/trftarget:0.3.3
 ```
 
 To test the installation (should print the version of tRFtarget-pipeline)
 
 ```bash
 # For Docker
-docker run -it --rm az7jh2/trftarget:0.3.2 tRFtarget -v
+docker run -it --rm az7jh2/trftarget:0.3.3 tRFtarget -v
 # For Singularity
-singularity exec trftarget-0.3.2.sif tRFtarget -v
+singularity exec trftarget-0.3.3.sif tRFtarget -v
 ```
 
 ## 2. Usage
@@ -75,9 +75,9 @@ The command to run tRFtarget-pipeline with default setting is:
 
 ```bash
 # For Docker
-docker run -it --rm -v <path>:/data az7jh2/trftarget:0.3.2 tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
+docker run -it --rm -v <path>:/data az7jh2/trftarget:0.3.3 tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
 # For Singularity
-singularity exec -B <path>:/data trftarget-0.3.2.sif tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
+singularity exec -B <path>:/data trftarget-0.3.3.sif tRFtarget -q <query_fasta_file_name> -t <target_fasta_file_name> -n 1 --e_rnahybrid -15 --e_intarna 0 -b 1 -s 6
 ```
 
 `<path>` is the valid and **absolute** path of the folder in the host machine to be mounted in the Docker/Singularity image for data exchanging (`readlink -f` can be used to get the absolute path of folder).
